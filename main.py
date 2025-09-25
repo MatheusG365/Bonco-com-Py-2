@@ -1,4 +1,5 @@
-from flask import Flask , render_template, request, flash, redirect, url_for, session
+from flask import Flask , render_template, request, flash, redirect, url_for, session, send_file
+from fpdf import FPDF
 import fdb
 from flask_bcrypt import generate_password_hash, check_password_hash
 
@@ -6,7 +7,7 @@ app = Flask(__name__)
 app.secret_key = 'OI'
 
 host = 'localhost'
-database = r'C:\Users\Aluno\Documents\PY-Banco-de-Dado\1-09.FDB'
+database = r'C:\Users\Aluno\Desktop\Lumi-re\Bonco-com-Py-2\1-09.FDB'
 user = 'SYSDBA'
 password = 'sysdba'
 
@@ -213,6 +214,38 @@ def delete(id):
     finally:
         cursor.close()
         return redirect(url_for('livros'))
+
+## PDF Generation Route (Optional)
+@app.route('/livros/relatorio', methods=['GET']) 
+def relatorio():
+    cursor = con.cursor()
+    cursor.execute("SELECT id_livro, titulo, autor, ano_publicado FROM livro")
+    livros = cursor.fetchall()
+    cursor.close()
+
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+    pdf.set_font("Arial", style='B', size=16)
+    pdf.cell(200, 10, "Relatorio de Livros", ln=True, align='C')
+
+    pdf.ln(5)  # Espaço entre o título e a linha
+    pdf.line(10, pdf.get_y(), 200, pdf.get_y())  # Linha abaixo do título
+    pdf.ln(5)  # Espaço após a linha
+
+    pdf.set_font("Arial", size=12)
+    for livro in livros:    
+        pdf.cell(200, 10, f"ID: {livro[0]} - {livro[1]} - {livro[2]} - {livro[3]}", ln=True)
+
+    contador_livros = len(livros)
+    pdf.ln(10)  # Espaço antes do contador
+    pdf.set_font("Arial", style='B', size=12)
+    pdf.cell(200, 10, f"Total de livros cadastrados: {contador_livros}", ln=True, align='C')
+
+    pdf_path = "relatorio_livros.pdf"
+    pdf.output(pdf_path)
+    return send_file(pdf_path, as_attachment=True, mimetype='application/pdf')     
+
 
 if __name__ == '__main__':
     app.run(debug=True)

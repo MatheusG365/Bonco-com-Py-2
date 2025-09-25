@@ -11,6 +11,7 @@
         <h1>Biblioteca</h1>
         <a href="\novo">Ir para outra página</a>
         <a href="\logout">Sair</a>
+        <a href="{{ url_for('relatorio') }}">Criar relatório</a>
 
             <!-- Exibir mensagens flash -->
 {% with messages = get_flashed_messages(with_categories=true) %}
