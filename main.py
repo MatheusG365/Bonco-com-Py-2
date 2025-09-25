@@ -1,4 +1,4 @@
-from flask import Flask , render_template, request, flash, redirect, url_for, session, send_file
+from flask import Flask , render_template, request, flash, redirect, url_for, session, send_file, send_from_directory
 from fpdf import FPDF
 import fdb
 from flask_bcrypt import generate_password_hash, check_password_hash
@@ -153,12 +153,21 @@ def criar():
 
         cursor.execute(''' INSERT INTO LIVRO (TITULO, AUTOR, ANO_PUBLICADO)
                            VALUES (?, ?, ?)''', (titulo, autor, ano_publicacao))
-
+        id_livro = cursor.fetchone()[0]
         con.commit()
+
+        # Salvar o arquivo de capa
+        arquivo = request.files['arquivo']
+        arquivo.save(f'uploads/capa{id_livro}.jpg')
+
     finally:
         cursor.close()
     flash('Livro cradastrado com sucesso', 'success')
-    return  redirect(url_for('index'))
+    return  redirect(url_for('livros'))
+
+@app.route('/uploads/<nome_arquivo>')
+def imagem(nome_arquivo):
+    return send_from_directory('uploads', nome_arquivo)
 
 @app.route('/atualizar')
 def atualizar():
